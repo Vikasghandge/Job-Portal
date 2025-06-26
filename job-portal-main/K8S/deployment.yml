@@ -1,0 +1,22 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+  labels:
+    app: job-app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: job-app
+  template:
+    metadata:
+      labels:
+        app: job-app
+    spec:
+      containers:
+      - name: job-app
+        image: ghandgevikas/my-app:v1
+        ports:
+        - containerPort: 80
