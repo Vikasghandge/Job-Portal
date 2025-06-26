@@ -1,7 +1,13 @@
-FROM node:18 
-WORKDIR /app 
-COPY package.json ./
-RUN npm install 
+FROM node:18
+
+WORKDIR /app
+COPY package*.json ./
+
+# Clean install dependencies
+RUN npm ci --legacy-peer-deps
+
 COPY . .
-EXPOSE 3000 
+
+RUN npm run build
+
 CMD ["npm", "start"]
