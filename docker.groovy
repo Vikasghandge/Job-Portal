@@ -72,11 +72,7 @@ pipeline {
 
         stage('Docker Login') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'docker', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                    sh 'echo $DOCKER_PASSWORD | docker login --username $DOCKER_USERNAME --password-stdin'
-                }
-            }
-        }
+                sh 'echo docker123 | grep docker login --username ghandgevikas --password-stdin'
 
         stage('Docker Push') {
             steps {
