@@ -1,11 +1,11 @@
 pipeline {
-    agent any
+    agent any 
 
     tools {
-        nodejs 'node20'
+        nodejs 'node18'
     }
 
-    environment {
+    environment {  //
         IMAGE_NAME = 'ghandgevikas/my-app'
         TAG = 'v1'
         REGION = 'ap-south-1'
@@ -15,7 +15,7 @@ pipeline {
     stages {
         stage('Clean Workspace') {
             steps {
-                cleanWs()
+                cleanWs()  // 
             }
         }
 
@@ -29,11 +29,19 @@ pipeline {
             steps {
                 withSonarQubeEnv('sonar-server') {
                     sh '''${SCANNER_HOME}/bin/sonar-scanner \
-                      -Dsonar.projectName=Job-portal \
-                      -Dsonar.projectKey=Job-portal'''
+                    -Dsonar.projectName=Job-portal \
+                    -Dsonar.projectKey=Job-portal'''
                 }
             }
         }
+
+        // stage('Quality Gate') {
+        //     steps {
+        //         script {
+        //             waitForQualityGate abortPipeline: true, credentialsId: 'Sonar-token'
+        //         }
+        //     }
+        // }
 
         stage('Install Dependencies') {
             steps {
@@ -57,34 +65,28 @@ pipeline {
         stage('Docker Build') {
             steps {
                 dir('job-portal-main') {
-                    script {
-                        withCredentials([string(credentialsId: 'docker-hub-token', variable: 'DOCKER_TOKEN')]) {
-                            sh '''
-                                echo "$DOCKER_TOKEN" | docker login -u "ghandgevikas" --password-stdin
-                                docker build -t $IMAGE_NAME:$TAG .
-                            '''
-                        }
-                    }
+                    sh 'docker build -t $IMAGE_NAME:$TAG .'
+                }
+            }
+        }
+
+        stage('Docker Login') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'docker', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                    sh 'echo $DOCKER_PASSWORD | docker login --username $DOCKER_USERNAME --password-stdin'
                 }
             }
         }
 
         stage('Docker Push') {
             steps {
-                script {
-                    withCredentials([string(credentialsId: 'docker-hub-token', variable: 'DOCKER_TOKEN')]) {
-                        sh '''
-                            echo "$DOCKER_TOKEN" | docker login -u "ghandgevikas" --password-stdin
-                            docker push $IMAGE_NAME:$TAG
-                        '''
-                    }
-                }
+                sh 'docker push $IMAGE_NAME:$TAG'
             }
         }
 
         stage('Run Container') {
             steps {
-                sh 'docker run -d --name my-con1 -p 3000:3000 $IMAGE_NAME:$TAG'
+                sh 'docker run -d --name my-con1 -p 3000:3000 $IMAGE_NAME:$TAG'  // ✅ Fix: use the tag
             }
         }
     }
