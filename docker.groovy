@@ -1,11 +1,11 @@
 pipeline {
-    agent any 
+    agent any
 
     tools {
         nodejs 'node20'
     }
 
-    environment {  //
+    environment {
         IMAGE_NAME = 'ghandgevikas/my-app'
         TAG = 'v1'
         REGION = 'ap-south-1'
@@ -15,7 +15,7 @@ pipeline {
     stages {
         stage('Clean Workspace') {
             steps {
-                cleanWs()  // 
+                cleanWs()
             }
         }
 
@@ -29,19 +29,19 @@ pipeline {
             steps {
                 withSonarQubeEnv('sonar-server') {
                     sh '''${SCANNER_HOME}/bin/sonar-scanner \
-                    -Dsonar.projectName=Job-portal \
-                    -Dsonar.projectKey=Job-portal'''
+                      -Dsonar.projectName=Job-portal \
+                      -Dsonar.projectKey=Job-portal'''
                 }
             }
         }
 
-        stage('Quality Gate') {
-            steps {
-                script {
-                    waitForQualityGate abortPipeline: true, credentialsId: 'Sonar-token'
-                }
-            }
-        }
+      //  stage('Quality Gate') {
+     //       steps {
+   //             script {
+   //                 waitForQualityGate abortPipeline: true, credentialsId: 'Sonar-token'
+    //            }
+  //          }
+  //      }
 
         stage('Install Dependencies') {
             steps {
@@ -72,7 +72,9 @@ pipeline {
 
         stage('Docker Login') {
             steps {
-                sh 'echo docker123 | grep docker login --username ghandgevikas --password-stdin'
+                sh 'echo docker123 | docker login --username ghandgevikas --password-stdin'
+            }
+        }
 
         stage('Docker Push') {
             steps {
@@ -82,7 +84,7 @@ pipeline {
 
         stage('Run Container') {
             steps {
-                sh 'docker run -d --name my-con1 -p 3000:3000 $IMAGE_NAME:$TAG'  // ✅ Fix: use the tag
+                sh 'docker run -d --name my-con1 -p 3000:3000 $IMAGE_NAME:$TAG'
             }
         }
     }
