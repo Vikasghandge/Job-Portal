@@ -72,7 +72,7 @@ pipeline {
 
         stage('Docker Login') {
             steps {
-                sh 'echo docker123 | docker login --username ghandgevikas --password-stdin'
+                sh 'echo docker@123 | docker login --username ghandgevikas --password-stdin'
             }
         }
 
