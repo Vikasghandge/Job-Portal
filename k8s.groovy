@@ -2,7 +2,7 @@ pipeline {
     agent any 
 
     tools {
-        nodejs 'node20'
+        nodejs 'node18'
     }
 
     environment {  //
@@ -21,7 +21,7 @@ pipeline {
 
         stage('Checkout Code') {
             steps {
-                git branch: 'creds-troubleshooting', url: 'https://github.com/Vikasghandge/Job-Portal.git'
+                git branch: 'test', url: 'https://github.com/Vikasghandge/Job-Portal.git'
             }
         }
 
@@ -33,15 +33,15 @@ pipeline {
                     -Dsonar.projectKey=Job-portal'''
                 }
             }
-       
-        // stage('Quality Gate') {
-        //     steps {
-        //         script {
-        //             waitForQualityGate abortPipeline: true, credentialsId: 'Sonar-token'
-        //         }
-        //     }
-        // }
-   
+        }
+
+        stage('Quality Gate') {
+            steps {
+                script {
+                    waitForQualityGate abortPipeline: true, credentialsId: 'Sonar-token'
+                }
+            }
+        }
 
         stage('Install Dependencies') {
             steps {
@@ -72,11 +72,11 @@ pipeline {
 
         stage('Docker Login') {
             steps {
-                 
-                    sh 'echo docker@1234 | docker login --username ghandgevikas --password-stdin'
+                withCredentials([usernamePassword(credentialsId: 'docker', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                    sh 'echo $DOCKER_PASSWORD | docker login --username $DOCKER_USERNAME --password-stdin'
                 }
             }
-        
+        }
 
         stage('Docker Push') {
             steps {
@@ -84,9 +84,22 @@ pipeline {
             }
         }
 
-        stage('Run Container') {
+        // stage('Run Container') {
+        //     steps {
+        //         sh 'docker run -d --name my-con1 -p 3000:3000 $IMAGE_NAME:$TAG'  // ✅ Fix: use the tag
+        //     }
+        // }
+        stage('Deploy on k8s') {
             steps {
-                sh 'docker run -d --name my-con1 -p 3000:3000 $IMAGE_NAME:$TAG'  // ✅ Fix: use the tag
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'k8s']]) {
+                    dir('FullStack-Blogging-App-main/K8S') {
+                        sh '''
+                            aws eks --region ap-south-1 update-kubeconfig --name EKS_CLOUD
+                            kubectl apply -f deployment.yml
+                            kubectl apply -f service.yml
+                        '''
+                    }
+                }
             }
         }
     }
