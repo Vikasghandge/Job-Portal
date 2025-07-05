@@ -21,7 +21,7 @@ pipeline {
 
         stage('Checkout Code') {
             steps {
-                git branch: 'creds-troubleshooting', url: 'https://github.com/Vikasghandge/Job-Portal.git'
+                git branch: 'test', url: 'https://github.com/Vikasghandge/Job-Portal.git'
             }
         }
 
@@ -34,14 +34,6 @@ pipeline {
                 }
             }
         }
-
-      //  stage('Quality Gate') {
-     //       steps {
-   //             script {
-   //                 waitForQualityGate abortPipeline: true, credentialsId: 'Sonar-token'
-    //            }
-  //          }
-  //      }
 
         stage('Install Dependencies') {
             steps {
@@ -65,20 +57,28 @@ pipeline {
         stage('Docker Build') {
             steps {
                 dir('job-portal-main') {
-                    sh 'docker build -t $IMAGE_NAME:$TAG .'
+                    script {
+                        withCredentials([string(credentialsId: 'docker-hub-token', variable: 'DOCKER_TOKEN')]) {
+                            sh '''
+                                echo "$DOCKER_TOKEN" | docker login -u "ghandgevikas" --password-stdin
+                                docker build -t $IMAGE_NAME:$TAG .
+                            '''
+                        }
+                    }
                 }
             }
         }
 
-        withCredentials([string(credentialsId: 'docker-hub-token', variable: 'DOCKER_TOKEN')]) {
-           sh '''
-             echo "$DOCKER_TOKEN" | docker login -u "ghandgevikas" --password-stdin
-              '''
-          }
-
         stage('Docker Push') {
             steps {
-                sh 'docker push $IMAGE_NAME:$TAG'
+                script {
+                    withCredentials([string(credentialsId: 'docker-hub-token', variable: 'DOCKER_TOKEN')]) {
+                        sh '''
+                            echo "$DOCKER_TOKEN" | docker login -u "ghandgevikas" --password-stdin
+                            docker push $IMAGE_NAME:$TAG
+                        '''
+                    }
+                }
             }
         }
 
