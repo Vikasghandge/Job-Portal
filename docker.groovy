@@ -21,7 +21,7 @@ pipeline {
 
         stage('Checkout Code') {
             steps {
-                git branch: 'test', url: 'https://github.com/Vikasghandge/Job-Portal.git'
+                git branch: 'creds-troubleshooting', url: 'https://github.com/Vikasghandge/Job-Portal.git'
             }
         }
 
