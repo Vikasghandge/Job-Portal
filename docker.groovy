@@ -72,7 +72,10 @@ pipeline {
 
         stage('Docker Login') {
             steps {
-                sh 'echo docker@123 | docker login --username ghandgevikas --password-stdin'
+                withCredentials([usernamePassword(credentialsId: 'docker-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                }
+                    
             }
         }
 
