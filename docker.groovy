@@ -33,8 +33,7 @@ pipeline {
                     -Dsonar.projectKey=Job-portal'''
                 }
             }
-        }
-
+       
         // stage('Quality Gate') {
         //     steps {
         //         script {
@@ -42,6 +41,7 @@ pipeline {
         //         }
         //     }
         // }
+   
 
         stage('Install Dependencies') {
             steps {
